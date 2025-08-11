@@ -375,35 +375,37 @@ const generateReport = () => {
             </button>
             {/* Área para importar respaldo */}
             <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 mb-8">
-              <div className="flex flex-col md:flex-row gap-4 items-start md:items-center">
-                <div className="flex-1">
+              <div className="flex flex-col gap-4 md:flex-row md:items-center">
+                <div className="flex-1 mb-2 md:mb-0">
                   <h3 className="font-medium text-yellow-800">Importar Respaldo</h3>
                   <p className="text-sm text-yellow-700">Selecciona un archivo de respaldo (.json)</p>
                 </div>
-                <input
-                  type="file"
-                  accept=".json"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) {
-                      const reader = new FileReader();
-                      reader.onload = (event) => {
-                        try {
-                          const data = JSON.parse(event.target?.result);
-                          if (window.confirm('¿Importar este respaldo?')) {
-                            setMonthlyData(data);
-                            alert('Datos importados exitosamente');
+                <div className="w-full md:w-auto">
+                  <input
+                    type="file"
+                    accept=".json"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        const reader = new FileReader();
+                        reader.onload = (event) => {
+                          try {
+                            const data = JSON.parse(event.target?.result);
+                            if (window.confirm('¿Importar este respaldo?')) {
+                              setMonthlyData(data);
+                              alert('Datos importados exitosamente');
+                            }
+                          } catch (error) {
+                            alert('Error al leer el archivo.');
                           }
-                        } catch (error) {
-                          alert('Error al leer el archivo.');
-                        }
-                      };
-                      reader.readAsText(file);
-                    }
-                    e.target.value = '';
-                  }}
-                  className="px-3 py-2 border border-gray-300 rounded-lg bg-white"
-                />
+                        };
+                        reader.readAsText(file);
+                      }
+                      e.target.value = '';
+                    }}
+                    className="px-3 py-2 border border-gray-300 rounded-lg bg-white w-full md:w-auto"
+                  />
+                </div>
               </div>
             </div>
             </div>
