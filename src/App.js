@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, use } from 'react';
 import { Plus, DollarSign, TrendingUp, TrendingDown, FileText, Calendar, Search, Download, Edit2, Trash2 } from 'lucide-react';
 
 const TreasurySystem = () => {
@@ -8,9 +8,23 @@ const TreasurySystem = () => {
   const [searchTerm, setSearchTerm] = useState('');
   
   // Estado para almacenar datos
-  const [monthlyData, setMonthlyData] = useState({});
-  const [showIncomeModal, setShowIncomeModal] = useState(false);
-  const [showExpenseModal, setShowExpenseModal] = useState(false);
+  const [monthlyData, setMonthlyData] = useState(() => {
+    const savedData = localStorage.getItem('monthlyData');
+    return savedData ? JSON.parse(savedData) : {};
+  });
+  const [showIncomeModal, setShowIncomeModal] = useState(() => {
+    const savedData = localStorage.getItem('showIncomeModal');
+    return savedData ? JSON.parse(savedData) : false;
+  })
+  const [showExpenseModal, setShowExpenseModal] = useState(() => {
+    const savedData = localStorage.getItem('showExpenseModal');
+    return savedData ? JSON.parse(savedData) : false;
+  });
+
+  // Save data in localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem('treaury-data', JSON.stringify(monthlyData));
+  }, [monthlyData]);
   
   // Formularios
   const [incomeForm, setIncomeForm] = useState({
@@ -433,6 +447,19 @@ const TreasurySystem = () => {
                 >
                   <Plus className="h-5 w-5" />
                   <span>Registrar Egreso</span>
+                </button>
+                {/* clean all data */}
+                <button
+                  onClick={() => {
+                    if (window.confirm('¿Estás seguro de que deseas limpiar todos los datos?')) {
+                      localStorage.removeItem('treasury-data');
+                      setMonthlyData({});
+                    }
+                  }}
+                  className="w-full flex items-center gap-3 bg-gray-600 text-white px-4 py-3 rounded-lg hover:bg-gray-700 transition-colors"
+                >
+                  <Trash2 className="h-5 w-5" />
+                  <span>Limpiar Todos los Datos</span>
                 </button>
               </div>
             </div>
