@@ -9,7 +9,7 @@ const TreasurySystem = () => {
   
   // Estado para almacenar datos
   const [monthlyData, setMonthlyData] = useState(() => {
-    const savedData = localStorage.getItem('monthlyData');
+    const savedData = localStorage.getItem('treasury-data');
     return savedData ? JSON.parse(savedData) : {};
   });
   const [showIncomeModal, setShowIncomeModal] = useState(() => {
@@ -23,7 +23,7 @@ const TreasurySystem = () => {
 
   // Save data in localStorage whenever it changes
   useEffect(() => {
-    localStorage.setItem('treaury-data', JSON.stringify(monthlyData));
+    localStorage.setItem('treasury-data', JSON.stringify(monthlyData));
   }, [monthlyData]);
   
   // Formularios
