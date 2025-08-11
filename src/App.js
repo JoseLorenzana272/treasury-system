@@ -1,5 +1,6 @@
 import React, { useState, useEffect, use } from 'react';
 import { Plus, DollarSign, TrendingUp, TrendingDown, FileText, Calendar, Search, Download, Edit2, Trash2 } from 'lucide-react';
+const XLSX = require('xlsx');
 
 const TreasurySystem = () => {
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
@@ -272,42 +273,42 @@ const TreasurySystem = () => {
   };
 
   // Generar reporte detallado
-  const generateReport = () => {
-    const { totalIncome, totalExpenses, currentBalance, previousBalance } = getCurrentMonthTotals();
-    const currentKey = getCurrentMonthKey();
-    const currentData = monthlyData[currentKey] || { incomes: [], expenses: [] };
-    
-    let report = `REPORTE FINANCIERO - ${months[currentMonth]} ${currentYear}\n`;
-    report += `===============================================\n\n`;
-    report += `RESUMEN:\n`;
-    report += `Saldo Anterior: Q${previousBalance.toFixed(2)}\n`;
-    report += `Total Ingresos: Q${totalIncome.toFixed(2)}\n`;
-    report += `Total Egresos: Q${totalExpenses.toFixed(2)}\n`;
-    report += `Saldo Actual: Q${currentBalance.toFixed(2)}\n\n`;
-    
-    report += `DETALLE DE INGRESOS:\n`;
-    report += `=====================\n`;
-    currentData.incomes.forEach(income => {
-      report += `${income.date} - ${income.category}: Q${income.amount.toFixed(2)} (${income.description})\n`;
-    });
-    
-    report += `\nDETALLE DE EGRESOS:\n`;
-    report += `===================\n`;
-    currentData.expenses.forEach(expense => {
-      report += `${expense.date} - ${expense.category}: Q${expense.amount.toFixed(2)} (${expense.description})\n`;
-    });
-    
-    // Crear y descargar archivo
-    const blob = new Blob([report], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `Reporte_${months[currentMonth]}_${currentYear}.txt`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  };
+  // Generar reporte en Excel
+const generateReport = () => {
+  const { totalIncome, totalExpenses, currentBalance, previousBalance } = getCurrentMonthTotals();
+  const currentKey = getCurrentMonthKey();
+  const currentData = monthlyData[currentKey] || { incomes: [], expenses: [] };
+  
+  // Crear datos para Excel
+  const excelData = [
+    ['REPORTE FINANCIERO', `${months[currentMonth]} ${currentYear}`],
+    [''],
+    ['RESUMEN'],
+    ['Saldo Anterior:', `Q${previousBalance.toFixed(2)}`],
+    ['Total Ingresos:', `Q${totalIncome.toFixed(2)}`],
+    ['Total Egresos:', `Q${totalExpenses.toFixed(2)}`],
+    ['Saldo Actual:', `Q${currentBalance.toFixed(2)}`],
+    [''],
+    ['DETALLE DE INGRESOS'],
+    ['Fecha', 'Categoría', 'Descripción', 'Monto'],
+    ...currentData.incomes.map(income => [
+      income.date, income.category, income.description, income.amount
+    ]),
+    [''],
+    ['DETALLE DE EGRESOS'],
+    ['Fecha', 'Categoría', 'Descripción', 'Monto'],
+    ...currentData.expenses.map(expense => [
+      expense.date, expense.category, expense.description, expense.amount
+    ])
+  ];
+
+  // Crear y descargar Excel
+  const XLSX = require('xlsx');
+  const ws = XLSX.utils.aoa_to_sheet(excelData);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Reporte');
+  XLSX.writeFile(wb, `Reporte_${months[currentMonth]}_${currentYear}.xlsx`);
+};
 
   const { totalIncome, totalExpenses, currentBalance, previousBalance } = getCurrentMonthTotals();
   const currentKey = getCurrentMonthKey();
@@ -354,6 +355,57 @@ const TreasurySystem = () => {
                 <Download className="h-4 w-4" />
                 Generar Reporte
               </button>
+              <button
+              onClick={() => {
+                const dataStr = JSON.stringify(monthlyData, null, 2);
+                const blob = new Blob([dataStr], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `Respaldo_Tesoreria_${new Date().toISOString().split('T')[0]}.json`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+              }}
+              className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              <Download className="h-4 w-4" />
+              Respaldar Datos
+            </button>
+            {/* Área para importar respaldo */}
+            <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 mb-8">
+              <div className="flex flex-col md:flex-row gap-4 items-start md:items-center">
+                <div className="flex-1">
+                  <h3 className="font-medium text-yellow-800">Importar Respaldo</h3>
+                  <p className="text-sm text-yellow-700">Selecciona un archivo de respaldo (.json)</p>
+                </div>
+                <input
+                  type="file"
+                  accept=".json"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      const reader = new FileReader();
+                      reader.onload = (event) => {
+                        try {
+                          const data = JSON.parse(event.target?.result);
+                          if (window.confirm('¿Importar este respaldo?')) {
+                            setMonthlyData(data);
+                            alert('Datos importados exitosamente');
+                          }
+                        } catch (error) {
+                          alert('Error al leer el archivo.');
+                        }
+                      };
+                      reader.readAsText(file);
+                    }
+                    e.target.value = '';
+                  }}
+                  className="px-3 py-2 border border-gray-300 rounded-lg bg-white"
+                />
+              </div>
+            </div>
             </div>
           </div>
         </div>
